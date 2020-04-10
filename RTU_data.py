@@ -81,5 +81,5 @@ class RTU_data:
         ret += 'ID: '+str(self.id) + '\n'
         ret += 'Thresholds ' + str(self.thresholds) + '\n'
         ret += 'Current_data ' + str(self.current_data) + '\n'
-        ret += 'NUmber of data points ' + str(len(self.history))
+        ret += 'Number of data points ' + str(len(self.history))
         return ret
