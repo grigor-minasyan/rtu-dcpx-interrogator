@@ -1,4 +1,4 @@
-import time, socket, struct, mysql.connector, config, sys
+import time, socket, struct, mysql.connector, config, sys, os
 from DCPx_functions import *
 from RTU_data import *
 recvtimeout = 1
@@ -20,7 +20,10 @@ for id, ip, port in db_cursor:
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server_address = ('192.168.1.100', 10000)
-sock.bind(server_address)
+try:
+    sock.bind(server_address)
+except:
+    pass
 
 def get_RTU_i(id):
     for i in range(len(RTU_list)):
@@ -97,5 +100,13 @@ if __name__ == '__main__':
         if list_before[i] != list_after[i]: # if chere is a change of state
             db_cursor.execute("INSERT INTO event_history(type, rtu_id, display) VALUES ('COS', %s, %s)", (list_before[i][0], list_before[i][1]))
 
+    for rtu in RTU_list:
+        # update the link status of the devices
+        if os.system("ping -c 1 -w 1 " + rtu.ip) == 0:
+            db_cursor.execute("UPDATE rtu_list SET link = 1 WHERE rtu_id = %s", (rtu.id, ))
+        else:
+            db_cursor.execute("UPDATE rtu_list SET link = 0 WHERE rtu_id = %s", (rtu.id, ))
+
+    sock.close()
     db_cnx.commit()
     db_cnx.close()
