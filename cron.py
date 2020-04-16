@@ -69,39 +69,69 @@ if __name__ == '__main__':
 
     # updating the standing alarms table
     for rtu in RTU_list:
-        print(rtu.id)
-        db_cursor.execute("SELECT COUNT(rtu_id_display) FROM standing_alarms WHERE rtu_id_display = %s", (str(rtu.id) + "_1", )) #selecting the temp display
-        if db_cursor.fetchone()[0] == 0: # insert the alarm into the table if doesnt exist
-            db_cursor.execute("INSERT INTO standing_alarms(rtu_id_display, rtu_id, display, value, mj_und_val, mn_und_val, mn_ovr_val, mj_ovr_val) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (str(rtu.id) + "_1", rtu.id, 1, rtu.current_data.temp, rtu.thresholds[0], rtu.thresholds[1], rtu.thresholds[2], rtu.thresholds[3]))
-        else:
-            db_cursor.execute("UPDATE standing_alarms SET value = %s WHERE rtu_id_display = %s", (rtu.current_data.temp, str(rtu.id) + "_1"))
+        # print(rtu.id)
+        alarm_desc = ["mj_und","mn_und","mn_ovr","mj_ovr"]
+        for i in range(1, 3): #1 for temp display, 2 for humidity
+            for j in range (1, 5): #points 1-4 for temp and humidity
+                db_cursor.execute("SELECT COUNT(alarm_id) FROM standing_alarms WHERE rtu_id = %s AND display = %s AND point = %s", (rtu.id, i, j)) #selecting the temp display
+                if db_cursor.fetchone()[0] == 0: # insert the alarm into the table if doesnt exist
+                    query = """INSERT INTO standing_alarms(rtu_id, display, point, type, description, unit, threshold_value, analog_value)
+                            VALUES ({}, {}, {}, {}, {}, {}, {}, {})""".format(rtu.id, i, j, "analog", alarm_desc[j-1], ("c" if i == 1 else "%"), rtu.thresholds[j-1], (rtu.current_data.temp if i == 1 else rtu.current_data.hum))
+                    db_cursor.execute(query)
+                else:
+                    query = """UPDATE standing_alarms SET analog_value = {} WHERE rtu_id = {} AND display = {} AND point = {}""".format((rtu.current_data.temp if i == 1 else rtu.current_data.hum), rtu.id, i, j)
+                    db_cursor.execute(query)
 
-        db_cursor.execute("SELECT COUNT(rtu_id_display) FROM standing_alarms WHERE rtu_id_display = %s", (str(rtu.id) + "_2", )) #selecting the hum display
-        if db_cursor.fetchone()[0] == 0: # insert the alarm into the table if doesnt exist
-            db_cursor.execute("INSERT INTO standing_alarms(rtu_id_display,rtu_id,display,value,mj_und_val,mn_und_val,mn_ovr_val,mj_ovr_val) VALUES (%s, %s, %s, %s, 5, 10, 20, 50)", (str(rtu.id) + "_2", rtu.id, 2, rtu.current_data.hum))
-        else:
-            db_cursor.execute("UPDATE standing_alarms SET value = %s WHERE rtu_id_display = %s", (rtu.current_data.hum, str(rtu.id) + "_2"))
 
 
-    db_cursor_before = db_cnx.cursor(buffered=True)
-    db_cursor_before.execute("SELECT rtu_id, display, mj_und_set, mn_und_set, mn_ovr_set, mj_ovr_set FROM standing_alarms")
-    list_before = db_cursor_before.fetchall()
+        # db_cursor.execute("SELECT COUNT(rtu_id_display) FROM standing_alarms WHERE rtu_id_display = %s", (str(rtu.id) + "_1", )) #selecting the temp display
+        # if db_cursor.fetchone()[0] == 0: # insert the alarm into the table if doesnt exist
+        #     db_cursor.execute("INSERT INTO standing_alarms(rtu_id_display, rtu_id, display, value, mj_und_val, mn_und_val, mn_ovr_val, mj_ovr_val) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (str(rtu.id) + "_1", rtu.id, 1, rtu.current_data.temp, rtu.thresholds[0], rtu.thresholds[1], rtu.thresholds[2], rtu.thresholds[3]))
+        # else:
+        #     db_cursor.execute("UPDATE standing_alarms SET value = %s WHERE rtu_id_display = %s", (rtu.current_data.temp, str(rtu.id) + "_1"))
+        #
+        # db_cursor.execute("SELECT COUNT(rtu_id_display) FROM standing_alarms WHERE rtu_id_display = %s", (str(rtu.id) + "_2", )) #selecting the hum display
+        # if db_cursor.fetchone()[0] == 0: # insert the alarm into the table if doesnt exist
+        #     db_cursor.execute("INSERT INTO standing_alarms(rtu_id_display,rtu_id,display,value,mj_und_val,mn_und_val,mn_ovr_val,mj_ovr_val) VALUES (%s, %s, %s, %s, 5, 10, 20, 50)", (str(rtu.id) + "_2", rtu.id, 2, rtu.current_data.hum))
+        # else:
+        #     db_cursor.execute("UPDATE standing_alarms SET value = %s WHERE rtu_id_display = %s", (rtu.current_data.hum, str(rtu.id) + "_2"))
 
-    db_cursor.execute("UPDATE standing_alarms SET mj_und_set = 0, mn_und_set = 0, mn_ovr_set = 0, mj_ovr_set = 0")
-    db_cursor.execute("UPDATE standing_alarms SET mj_und_set = 1 WHERE value < mj_und_val")
-    db_cursor.execute("UPDATE standing_alarms SET mn_und_set = 1 WHERE value < mn_und_val")
-    db_cursor.execute("UPDATE standing_alarms SET mn_ovr_set = 1 WHERE value > mn_ovr_val")
-    db_cursor.execute("UPDATE standing_alarms SET mj_ovr_set = 1 WHERE value > mj_ovr_val")
 
-    db_cursor.execute("SELECT rtu_id, display, mj_und_set, mn_und_set, mn_ovr_set, mj_ovr_set FROM standing_alarms")
-    list_after = db_cursor.fetchall()
+    # db_cursor_before = db_cnx.cursor(buffered=True)
+    # db_cursor_before.execute("SELECT rtu_id, display, mj_und_set, mn_und_set, mn_ovr_set, mj_ovr_set FROM standing_alarms")
+    # list_before = db_cursor_before.fetchall()
+    #
+    # db_cursor.execute("UPDATE standing_alarms SET mj_und_set = 0, mn_und_set = 0, mn_ovr_set = 0, mj_ovr_set = 0")
+    # db_cursor.execute("UPDATE standing_alarms SET mj_und_set = 1 WHERE value < mj_und_val")
+    # db_cursor.execute("UPDATE standing_alarms SET mn_und_set = 1 WHERE value < mn_und_val")
+    # db_cursor.execute("UPDATE standing_alarms SET mn_ovr_set = 1 WHERE value > mn_ovr_val")
+    # db_cursor.execute("UPDATE standing_alarms SET mj_ovr_set = 1 WHERE value > mj_ovr_val")
+    #
+    # db_cursor.execute("SELECT rtu_id, display, mj_und_set, mn_und_set, mn_ovr_set, mj_ovr_set FROM standing_alarms")
+    # list_after = db_cursor.fetchall()
+    #
+    # for i in range(len(list_before)):
+    #     if list_before[i] != list_after[i]: # if chere is a change of state
+    #         db_cursor.execute("INSERT INTO event_history(type, rtu_id, display) VALUES ('COS', %s, %s)", (list_before[i][0], list_before[i][1]))
 
-    for i in range(len(list_before)):
-        if list_before[i] != list_after[i]: # if chere is a change of state
-            db_cursor.execute("INSERT INTO event_history(type, rtu_id, display) VALUES ('COS', %s, %s)", (list_before[i][0], list_before[i][1]))
+    db_cursor.execute("SELECT alarm_id, rtu_id, display, point, description, is_set, threshold_value, analog_value FROM standing_alarms")
+    db_cursor_second = db_cnx.cursor(buffered=True)
+    for alarm_id, rtu_id, display, point, description, is_set, threshold_value, analog_value in db_cursor:
+        if ((description == "mj_und" or description == "mn_und") and ((analog_value <= threshold_value and is_set == 0) or (analog_value > threshold_value and is_set == 1))):
+            db_cursor_second.execute("UPDATE standing_alarms SET is_set = %s WHERE alarm_id = %s", ((0 if is_set else 1),alarm_id))
+            cos_query = """INSERT INTO event_history(type, description, rtu_id, display, point, value)
+                            VALUES ('COS', '{}', {}, {}, {}, {})""".format(description, rtu_id, display, point, (0 if is_set else 1))
+            db_cursor_second.execute(cos_query)
 
+        if ((description == "mn_ovr" or description == "mj_ovr") and ((analog_value >= threshold_value and is_set == 0) or (analog_value < threshold_value and is_set == 1))):
+            db_cursor_second.execute("UPDATE standing_alarms SET is_set = %s WHERE alarm_id = %s", ((0 if is_set else 1),alarm_id))
+            cos_query = """INSERT INTO event_history(type, description, rtu_id, display, point, value)
+                            VALUES ('COS', '{}', {}, {}, {}, {})""".format(description, rtu_id, display, point, (0 if is_set else 1))
+            db_cursor_second.execute(cos_query)
+
+
+    # update the link status of the devices
     for rtu in RTU_list:
-        # update the link status of the devices
         if os.system("ping -c 1 -w 1 " + rtu.ip) == 0:
             db_cursor.execute("UPDATE rtu_list SET link = 1 WHERE rtu_id = %s", (rtu.id, ))
         else:
