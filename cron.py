@@ -40,15 +40,15 @@ def listening_thread(rtu):
     timeout = time.time() + recvtimeout
     sock.settimeout(recvtimeout)
     while time.time() < timeout:
-        print('\nwaiting to receive message')
+        # print('\nwaiting to receive message')
         try:
             data, address = sock.recvfrom(1024)
         except:
             continue
         else:
             data_list = bytearray(data)
-            print('received %s bytes from %s' % (len(data), address))
-            print(' '.join(hex(i)[2:] for i in bytearray(data_list)))
+            # print('received %s bytes from %s' % (len(data), address))
+            # print(' '.join(hex(i)[2:] for i in bytearray(data_list)))
             if (DCP_is_valid_response(data_list) and rtu.rtu_type == 'arduino'):
                 if get_RTU_i(data_list[2])  == -1:
                     print("No RTU found with an id of %s" % data_list[2])
@@ -57,6 +57,7 @@ def listening_thread(rtu):
                     DCP_process_response(data_list,rtu)
             elif (rtu.rtu_type == "temp_def_g2"):
                 DCP_process_response(data_list,rtu)
+                # print(rtu.display_data)
 
 if __name__ == '__main__':
     # updating the event history database
@@ -72,6 +73,11 @@ if __name__ == '__main__':
         print("\nsending for RTU %s with array size of %i" %(rtu.id, len(buff)))
         print(buff)
         listening_thread(rtu)
+
+        # testing some alarm points
+        if (len(rtu.display_data) == 22):
+            print(rtu.display_data[5])
+
         if rtu.rtu_type == 'arduino':
             db_cursor.execute("INSERT INTO event_history(type, display, value, rtu_id, unit) VALUES ('temp', 1, %s, %s, 'c')", (rtu.current_data.temp, rtu.id))
             db_cursor.execute("INSERT INTO event_history(type, display, value, rtu_id, unit) VALUES ('hum', 2, %s, %s, '%')", (rtu.current_data.hum, rtu.id))

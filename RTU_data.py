@@ -65,13 +65,18 @@ class RTU_data:
         self.rtu_type = rtu_type
         self.display_count = display_count
         self.display_data = []
+
+
+    def set_id(self, id):
+        self.id = id
+
+    def set_display_list(self, c):
+        self.display_count = c
         for i in range(self.display_count):
             self.display_data.append([])
             for j in range(64):
                 self.display_data[i].append(0)
-
-    def set_id(self, id):
-        self.id = id
+    
     def set_thresholds(self, list):
         for i in range(4):
                 self.thresholds[i] = list[i]

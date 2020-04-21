@@ -113,4 +113,20 @@ def DCP_process_response(buffer, rtu):
                 #     temp_data = Dttimetemphum(buffer[5], buffer[6], buffer[7], buffer[8], buffer[9], buffer[10], to_int8_t(buffer[11]), buffer[12])
                 #     rtu.add_hist(temp_data)
     elif rtu.rtu_type == 'temp_def_g2':
-        print("rec data from def")
+        # if sending the amount of lines to process
+        if (len(buffer) == 5 and buffer[2] == rtu.id):
+            rtu.set_display_list(int(buffer[3]/2))
+            # print(f"number of lines is {buffer[3]}")
+        else:
+            cur_display = int((buffer[2]-1)/2)
+            second_part =  32*((buffer[2]+1)%2)
+            for i in range(4):
+                for j in range(8):
+                    pass
+                    # print(len(rtu.display_data))
+                    # print(len(rtu.display_data[0]))
+                    # print(buffer)
+                    rtu.display_data[cur_display][8*i+j+second_part] = ((buffer[3+i] & (1 << j)) >> j)
+            # print(f"{cur_display} {second_part}")
+            pass
+        # print("rec data from def")
