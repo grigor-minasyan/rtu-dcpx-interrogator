@@ -101,13 +101,16 @@ def DCP_process_response(buffer, rtu):
     [aa][fa][addr][opcode][01][dt1][dt2][dt3][dt4][dt5][dt6][temp][hum][bch] - current temp
     [aa][fa][addr][opcode][02][dt1][dt2][dt3][dt4][dt5][dt6][temp][hum][bch] - year month sent in bitwise with temp and humidity
     """
-    if buffer[2] == rtu.id:
-        if buffer[3] == DCP_op_name.FUDR: #get the command to process
-            if buffer[4] == 0:#updating the thresholds
-                rtu.set_thresholds([to_int8_t(buffer[5]), to_int8_t(buffer[6]), to_int8_t(buffer[7]), to_int8_t(buffer[8])])
-                rtu.set_alarms_binary(buffer[9])
-            if buffer[4] == 1:#updating the current
-                rtu.set_current_data(Dttimetemphum(buffer[5], buffer[6], buffer[7], buffer[8], buffer[9], buffer[10], to_int8_t(buffer[11]), buffer[12]))
-            # if (buffer[4] == 2):#updating the history
-            #     temp_data = Dttimetemphum(buffer[5], buffer[6], buffer[7], buffer[8], buffer[9], buffer[10], to_int8_t(buffer[11]), buffer[12])
-            #     rtu.add_hist(temp_data)
+    if rtu.rtu_type == 'arduino':
+        if buffer[2] == rtu.id:
+            if buffer[3] == DCP_op_name.FUDR: #get the command to process
+                if buffer[4] == 0:#updating the thresholds
+                    rtu.set_thresholds([to_int8_t(buffer[5]), to_int8_t(buffer[6]), to_int8_t(buffer[7]), to_int8_t(buffer[8])])
+                    rtu.set_alarms_binary(buffer[9])
+                if buffer[4] == 1:#updating the current
+                    rtu.set_current_data(Dttimetemphum(buffer[5], buffer[6], buffer[7], buffer[8], buffer[9], buffer[10], to_int8_t(buffer[11]), buffer[12]))
+                # if (buffer[4] == 2):#updating the history
+                #     temp_data = Dttimetemphum(buffer[5], buffer[6], buffer[7], buffer[8], buffer[9], buffer[10], to_int8_t(buffer[11]), buffer[12])
+                #     rtu.add_hist(temp_data)
+    elif rtu.rtu_type == 'temp_def_g2':
+        print("rec data from def")

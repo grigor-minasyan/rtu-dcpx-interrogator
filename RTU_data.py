@@ -53,7 +53,7 @@ class Dttimetemphum:
 
 
 class RTU_data:
-    def __init__(self, id, ip, port):
+    def __init__(self, id, ip, port, rtu_type, display_count):
         self.id = id
         self.thresholds = [0,0,0,0]
         self.alarms_binary = 0
@@ -62,6 +62,14 @@ class RTU_data:
         self.history = set()
         self.ip = ip
         self.port = port
+        self.rtu_type = rtu_type
+        self.display_count = display_count
+        self.display_data = []
+        for i in range(self.display_count):
+            self.display_data.append([])
+            for j in range(64):
+                self.display_data[i].append(0)
+
     def set_id(self, id):
         self.id = id
     def set_thresholds(self, list):
@@ -79,7 +87,6 @@ class RTU_data:
     def __str__(self):
         ret = ""
         ret += 'ID: '+str(self.id) + '\n'
-        ret += 'Thresholds ' + str(self.thresholds) + '\n'
-        ret += 'Current_data ' + str(self.current_data) + '\n'
-        ret += 'Number of data points ' + str(len(self.history))
+        ret += 'Ip: '+str(self.ip) + '\n'
+        ret += 'Type: '+str(self.rtu_type) + '\n'
         return ret
