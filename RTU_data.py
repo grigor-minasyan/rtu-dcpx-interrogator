@@ -20,6 +20,76 @@ def compare_Dttimetemphum(item1, item2):
         return 0
 """
 
+def get_point_description(rtu_type, display, point):
+    if rtu_type == "temp_def_g2":
+        if display == 1:
+            if (point >= 1 and point <= 8):
+                return f"Discrete Alarms {point}"
+            elif point <= 16:
+                return "Undefined"
+            elif point <= 19:
+                return f"Controls {point-16}"
+            elif point <= 32:
+                return "Undefined"
+            elif point == 33:
+                return "Default configuration"
+            elif point == 34:
+                return "DIP Switch Config"
+            elif point == 35:
+                return "MAC Address Not Set"
+            elif point == 36:
+                return "IP Address Not Set"
+            elif point == 37:
+                return "LAN Hardware Error"
+            elif point == 38:
+                return "SNMP Processing Error"
+            elif point == 39:
+                return "SNMP community error"
+            elif point == 40:
+                return "LAN TX packet drop"
+            elif point <= 48:
+                return f"Notification {point-40} failed"
+            elif point == 49:
+                return "NTP failed"
+            elif point == 50:
+                return "Undefined"
+            elif point == 51:
+                return "Serial 1 RcvQ full"
+            elif point == 52:
+                return "Dynamic memory full"
+            elif point == 53:
+                return "Unit reset"
+            elif point == 54:
+                return "DCP poller inactive"
+            elif point == 55:
+                return "Reserved"
+            elif point == 56:
+                return "Modbus poller inactive"
+            elif point == 57:
+                return "DNP3 poller inactive"
+            elif point <= 64:
+                return "Reserved"
+        if display == 2:
+            if (point >= 1 and point <= 32):
+                return f"Ping Alarms {point}"
+            elif point <= 48:
+                return f"Derived Alarms {point-32}"
+            elif point <= 64:
+                return "Undefined"
+        if (display >= 3 and display <= 6):
+            flag_names = {1:"Minor Under", 2:"Minor Over", 3:"Major Under", 4:"Major Over"}
+            is_second_part = (1 if point > 32 else 0)
+            if (point-32*is_second_part >= 1 and point-32*is_second_part <= 4):
+                return f"Analog {display*2-5+is_second_part} {flag_names[point-32*is_second_part]}"
+            elif (point-32*is_second_part >= 9 and point-32*is_second_part <= 16):
+                return f"Analog {display*2-5+is_second_part} Control {point-32*is_second_part-8}"
+            elif (point-32*is_second_part >= 17 and point-32*is_second_part <= 32):
+                return f"Analog {display*2-5+is_second_part} Value {point-32*is_second_part-16}"
+
+
+            
+
+
 class Dttimetemphum:
     year = 0
     month = 0

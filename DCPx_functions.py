@@ -122,11 +122,4 @@ def DCP_process_response(buffer, rtu):
             second_part =  32*((buffer[2]+1)%2)
             for i in range(4):
                 for j in range(8):
-                    pass
-                    # print(len(rtu.display_data))
-                    # print(len(rtu.display_data[0]))
-                    # print(buffer)
                     rtu.display_data[cur_display][8*i+j+second_part] = ((buffer[3+i] & (1 << j)) >> j)
-            # print(f"{cur_display} {second_part}")
-            pass
-        # print("rec data from def")

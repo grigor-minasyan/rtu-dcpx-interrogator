@@ -76,7 +76,10 @@ if __name__ == '__main__':
 
         # testing some alarm points
         if (len(rtu.display_data) == 22):
-            print(rtu.display_data[5])
+            for x in rtu.display_data:
+                print(*x, sep=' ')
+            for i in range(1, 65):
+                print((f"{i} " if i < 10 else f"{i}"), end =("" if i != 64 else "\n"))
 
         if rtu.rtu_type == 'arduino':
             db_cursor.execute("INSERT INTO event_history(type, display, value, rtu_id, unit) VALUES ('temp', 1, %s, %s, 'c')", (rtu.current_data.temp, rtu.id))
