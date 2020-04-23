@@ -47,27 +47,19 @@ def listening_thread(rtu):
             continue
         else:
             data_list = bytearray(data)
-            # print('received %s bytes from %s' % (len(data), address))
-            # print(' '.join(hex(i)[2:] for i in bytearray(data_list)))
-            if (DCP_is_valid_response(data_list) and rtu.rtu_type == 'arduino'):
-                if get_RTU_i(data_list[2])  == -1:
+            print('rec %s byt frm %s-%s' % (len(data), address, (' '.join(str(i) for i in bytearray(data_list)))))
+            if DCP_is_valid_response(data_list):
+                if (get_RTU_i(data_list[2])  == -1 and rtu.rtu_type == "arduino"):
                     print("No RTU found with an id of %s" % data_list[2])
                 else:
-                    rtu = RTU_list[get_RTU_i(data_list[2])]
                     DCP_process_response(data_list,rtu)
-            elif (rtu.rtu_type == "temp_def_g2"):
-                DCP_process_response(data_list,rtu)
-                # print(rtu.display_data)
 
 if __name__ == '__main__':
     # updating the event history database
     for rtu in RTU_list:
         print(rtu)
         buff = []
-        if rtu.rtu_type == 'arduino':
-            buff = bytearray(DCP_buildPoll(rtu.id, DCP_op_lookup(DCP_op_name.FUDR)))
-        elif rtu.rtu_type == 'temp_def_g2':
-            buff = bytearray([0xAA, 0xFC, 0x04, 0x03, 0xCE])
+        buff = bytearray(DCP_buildPoll(rtu.id, DCP_op_lookup(DCP_op_name.FUDR)))
         DCP_compress_AA_byte(buff)
         sent = sock.sendto(buff, (rtu.ip, rtu.port))
         print("\nsending for RTU %s with array size of %i" %(rtu.id, len(buff)))
@@ -75,11 +67,10 @@ if __name__ == '__main__':
         listening_thread(rtu)
 
         # testing some alarm points
-        if (len(rtu.display_data) == 22):
+        if rtu.rtu_type == "temp_def_g2":
+            rtu.process_analogs(3, 22)
             for x in rtu.display_data:
                 print(*x, sep=' ')
-            for i in range(1, 65):
-                print((f"{i} " if i < 10 else f"{i}"), end =("" if i != 64 else "\n"))
 
         if rtu.rtu_type == 'arduino':
             db_cursor.execute("INSERT INTO event_history(type, display, value, rtu_id, unit) VALUES ('temp', 1, %s, %s, 'c')", (rtu.current_data.temp, rtu.id))

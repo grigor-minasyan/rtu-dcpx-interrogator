@@ -141,6 +141,7 @@ class RTU_data:
         self.id = id
 
     def set_display_list(self, c):
+        self.display_data = []
         self.display_count = c
         for i in range(self.display_count):
             self.display_data.append([])
@@ -165,3 +166,20 @@ class RTU_data:
         ret += 'Ip: '+str(self.ip) + '\n'
         ret += 'Type: '+str(self.rtu_type) + '\n'
         return ret
+
+    # processes analog values, displayed passed as 1 indexed
+    def process_analogs(self, display_start, display_end):
+        ranges = {0:0.001522821, 1:0.003863678, 2:0.008098398, 3:0.018197650, 4:0.023067190, 5:0.034655988, 6:1.000000000, 7:1.000000000}
+        display_start -= 1
+        display_end -= 1
+        for i in range(display_start, display_end + 1):
+            for j in range(0, 33, 32):
+                self.display_data[i][9+j] = ((self.display_data[i][16+j] << 8) | self.display_data[i][24+j])
+                is_enabled = ((1<<7)& self.display_data[i][8+j]) >> 7
+                is_negative = (0b01000000 & self.display_data[i][8+j])
+                cur_range = (0b00000111 & self.display_data[i][8+j])
+                self.display_data[i][9+j] *= (-1 if is_negative else 1) * ranges[cur_range]
+                self.display_data[i][8+j] = is_enabled
+
+            for j in range(0, 33, 32):
+                del self.display_data[i][42-j:64-j]

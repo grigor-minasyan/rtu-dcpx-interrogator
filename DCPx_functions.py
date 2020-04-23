@@ -28,7 +28,7 @@ def DCP_op_lookup(op):
 def DCP_genCmndBCH(buffer, count):
     bch, nBCHpoly, fBCHpoly = (0, 0xb8, 0xff)
     # 2 for accounting framing bytes
-    for i in range(2, count):
+    for i in range(0, count):
         bch ^= buffer[i]
         for j in range(8):
             if ((bch & 1) == 1):
@@ -91,7 +91,11 @@ def DCP_buildPoll(address, command):
     return buff
 
 def DCP_is_valid_response(buffer):
-    return (buffer[len(buffer)-1] == DCP_genCmndBCH(buffer, len(buffer)-1) and buffer[0] == 0xaa and buffer[1] == 0xfa)
+    DCP_expand_AA_byte(buffer)
+    result = (buffer[len(buffer)-1] == DCP_genCmndBCH(buffer, len(buffer)-1) and buffer[0] == 0xaa and buffer[1] == 0xfa)
+    if not result:
+        print(f"Received BCH: {buffer[len(buffer)-1]} expected BCH: {DCP_genCmndBCH(buffer, len(buffer)-1)}")
+    return result
 
 
 def DCP_process_response(buffer, rtu):
@@ -119,7 +123,11 @@ def DCP_process_response(buffer, rtu):
             # print(f"number of lines is {buffer[3]}")
         else:
             cur_display = int((buffer[2]-1)/2)
-            second_part =  32*((buffer[2]+1)%2)
+            second_part = 32*((buffer[2]+1)%2)
             for i in range(4):
-                for j in range(8):
-                    rtu.display_data[cur_display][8*i+j+second_part] = ((buffer[3+i] & (1 << j)) >> j)
+                if (cur_display >=2 and cur_display <= 21 and i):
+                    rtu.display_data[cur_display][8*i+second_part] = buffer[3+i]
+                    pass
+                else:
+                    for j in range(8):
+                        rtu.display_data[cur_display][8*i+j+second_part] = ((buffer[3+i] & (1 << j)) >> j)
