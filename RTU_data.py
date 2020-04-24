@@ -94,9 +94,9 @@ def get_point_description(rtu_type, display, point):
             if (pt >= 1 and pt <= 8):
                 return f"Digital sensor {display*2-5-8+is_second_part} {flag_names[pt]}"
             elif (pt >= 9 and pt <= 16):
-                return f"Digital sensor {display*2-5-8+is_second_part} Control {pt-8}"
+                return f"Digital sensor {display*2-5-8+is_second_part} Control"
             elif (pt >= 17 and pt <= 32):
-                return f"Digital sensor {display*2-5-8+is_second_part} Value {pt-16}"
+                return f"Digital sensor {display*2-5-8+is_second_part} Value"
 
 
             
@@ -149,6 +149,7 @@ class RTU_data:
         self.analog_end = 0
         self.display_count = display_count
         self.display_data = []
+        self.set_display_list(display_count)
 
 
     def set_id(self, id):

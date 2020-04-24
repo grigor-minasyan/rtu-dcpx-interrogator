@@ -55,7 +55,7 @@ def listening_thread(rtu):
             continue
         else:
             data_list = bytearray(data)
-            print('rec %s byt frm %s-%s' % (len(data), address, (' '.join(str(i) for i in bytearray(data_list)))))
+            # print('rec %s byt frm %s-%s' % (len(data), address, (' '.join(str(i) for i in bytearray(data_list)))))
             if DCP_is_valid_response(data_list):
                 if (get_RTU_i(data_list[2])  == -1 and rtu.rtu_type == "arduino"):
                     print("No RTU found with an id of %s" % data_list[2])
@@ -77,8 +77,8 @@ if __name__ == '__main__':
         # calculating analog values
         if rtu.rtu_type == "temp_def_g2":
             rtu.process_analogs(rtu.analog_start, rtu.analog_end)
-            for x in rtu.display_data:
-                print(*x, sep = ' ')
+            # for x in rtu.display_data:
+            #     print(*x, sep = ' ')
  
         if rtu.rtu_type == 'arduino':
             db_cursor.execute("INSERT INTO event_history(type, display, value, rtu_id, unit) VALUES ('temp', 1, %s, %s, 'c')", (rtu.current_data.temp, rtu.id))
@@ -122,6 +122,11 @@ if __name__ == '__main__':
                 for k in range(0, 33, 32):
                     value = rtu.display_data[i-1][9+k]
                     enable = rtu.display_data[i-1][8+k]
+                    if enable:
+                        insert_query = f"""INSERT INTO event_history(type, description, display, point, value, rtu_id, unit)
+                                        VALUES ('{'analog' if i < 7 else 'digital'}', '{get_point_description(rtu.rtu_type, i, 17+k)}', {i}, {k+1}, {value}, {rtu.id}, '{'v' if i < 7 else 'c'}')"""
+                        db_cursor.execute(insert_query)
+
                     for j in range(1+k, 5+k):
                         select_query = f"SELECT COUNT(alarm_id) FROM standing_alarms WHERE rtu_id = {rtu.id} AND display = {i} AND point = {j}"
                         db_cursor.execute(select_query) 
