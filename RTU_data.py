@@ -83,9 +83,9 @@ def get_point_description(rtu_type, display, point):
             if (pt >= 1 and pt <= 4):
                 return f"Analog {display*2-5+is_second_part} {flag_names[pt]}"
             elif (pt >= 9 and pt <= 16):
-                return f"Analog {display*2-5+is_second_part} Control {pt-8}"
+                return f"Analog {display*2-5+is_second_part} Control"
             elif (pt >= 17 and pt <= 32):
-                return f"Analog {display*2-5+is_second_part} Value {pt-16}"
+                return f"Analog {display*2-5+is_second_part} Value"
         if (display >= 7 and display <= 22):
             flag_names = {1:"minor under", 2:"minor over", 3:"major under", 4:"major over",
                             5:"sensor not detected", 6:"hvac fail", 7:"air flow below normal", 8:"sensor mate not detected"}
