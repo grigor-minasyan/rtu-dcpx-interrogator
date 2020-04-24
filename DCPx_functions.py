@@ -125,9 +125,8 @@ def DCP_process_response(buffer, rtu):
             cur_display = int((buffer[2]-1)/2)
             second_part = 32*((buffer[2]+1)%2)
             for i in range(4):
-                if (cur_display >=2 and cur_display <= 21 and i):
+                if (cur_display >=(rtu.analog_start-1) and cur_display <= (rtu.analog_end-1) and i):
                     rtu.display_data[cur_display][8*i+second_part] = buffer[3+i]
-                    pass
                 else:
                     for j in range(8):
                         rtu.display_data[cur_display][8*i+j+second_part] = ((buffer[3+i] & (1 << j)) >> j)

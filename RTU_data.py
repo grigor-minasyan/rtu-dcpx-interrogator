@@ -24,11 +24,11 @@ def get_point_description(rtu_type, display, point):
     if rtu_type == "temp_def_g2":
         if display == 1:
             if (point >= 1 and point <= 8):
-                return f"Discrete Alarms {point}"
+                return f"Discrete Alarm {point}"
             elif point <= 16:
                 return "Undefined"
             elif point <= 19:
-                return f"Controls {point-16}"
+                return f"Control {point-16}"
             elif point <= 32:
                 return "Undefined"
             elif point == 33:
@@ -71,20 +71,32 @@ def get_point_description(rtu_type, display, point):
                 return "Reserved"
         if display == 2:
             if (point >= 1 and point <= 32):
-                return f"Ping Alarms {point}"
+                return f"Ping Alarm {point}"
             elif point <= 48:
-                return f"Derived Alarms {point-32}"
+                return f"Derived Alarm {point-32}"
             elif point <= 64:
                 return "Undefined"
         if (display >= 3 and display <= 6):
-            flag_names = {1:"Minor Under", 2:"Minor Over", 3:"Major Under", 4:"Major Over"}
+            flag_names = {1:"minor under", 2:"minor over", 3:"major under", 4:"major over"}
             is_second_part = (1 if point > 32 else 0)
-            if (point-32*is_second_part >= 1 and point-32*is_second_part <= 4):
-                return f"Analog {display*2-5+is_second_part} {flag_names[point-32*is_second_part]}"
-            elif (point-32*is_second_part >= 9 and point-32*is_second_part <= 16):
-                return f"Analog {display*2-5+is_second_part} Control {point-32*is_second_part-8}"
-            elif (point-32*is_second_part >= 17 and point-32*is_second_part <= 32):
-                return f"Analog {display*2-5+is_second_part} Value {point-32*is_second_part-16}"
+            pt = point-32*is_second_part
+            if (pt >= 1 and pt <= 4):
+                return f"Analog {display*2-5+is_second_part} {flag_names[pt]}"
+            elif (pt >= 9 and pt <= 16):
+                return f"Analog {display*2-5+is_second_part} Control {pt-8}"
+            elif (pt >= 17 and pt <= 32):
+                return f"Analog {display*2-5+is_second_part} Value {pt-16}"
+        if (display >= 7 and display <= 22):
+            flag_names = {1:"minor under", 2:"minor over", 3:"major under", 4:"major over",
+                            5:"sensor not detected", 6:"hvac fail", 7:"air flow below normal", 8:"sensor mate not detected"}
+            is_second_part = (1 if point > 32 else 0)
+            pt = point-32*is_second_part
+            if (pt >= 1 and pt <= 8):
+                return f"Digital sensor {display*2-5-8+is_second_part} {flag_names[pt]}"
+            elif (pt >= 9 and pt <= 16):
+                return f"Digital sensor {display*2-5-8+is_second_part} Control {pt-8}"
+            elif (pt >= 17 and pt <= 32):
+                return f"Digital sensor {display*2-5-8+is_second_part} Value {pt-16}"
 
 
             
@@ -133,6 +145,8 @@ class RTU_data:
         self.ip = ip
         self.port = port
         self.rtu_type = rtu_type
+        self.analog_start = 0
+        self.analog_end = 0
         self.display_count = display_count
         self.display_data = []
 
@@ -179,7 +193,8 @@ class RTU_data:
                 is_negative = (0b01000000 & self.display_data[i][8+j])
                 cur_range = (0b00000111 & self.display_data[i][8+j])
                 self.display_data[i][9+j] *= (-1 if is_negative else 1) * ranges[cur_range]
+                self.display_data[i][9+j] = round(self.display_data[i][9+j], 3)
                 self.display_data[i][8+j] = is_enabled
 
-            for j in range(0, 33, 32):
-                del self.display_data[i][42-j:64-j]
+            # for j in range(0, 33, 32):
+            #     del self.display_data[i][42-j:64-j]
