@@ -3,6 +3,12 @@ from json import JSONEncoder
 
 
 """
+This file contains class declaration for date_time_temperature_humidity as a single class
+This also contains class declaration for RTU_data, where it contaions all of the information from RTU.
+"""
+
+
+"""
 def compare_Dttimetemphum(item1, item2):
     if item1.year != item2.year:
         return item1.year - item2.year
@@ -20,6 +26,7 @@ def compare_Dttimetemphum(item1, item2):
         return 0
 """
 
+# gets the descriptions for specific types of RTUs, currently it supports only temp_def_g2
 def get_point_description(rtu_type, display, point):
     if rtu_type == "temp_def_g2":
         if display == 1:
@@ -182,8 +189,9 @@ class RTU_data:
         ret += 'Type: '+str(self.rtu_type) + '\n'
         return ret
 
-    # processes analog values, displayed passed as 1 indexed
+    # processes analog values, displayed passed as 1 indexed, works only with temp_def_g2
     def process_analogs(self, display_start, display_end):
+        # RTU sends the float values as an int divided by those numbers, so we receive the INT and multiply by those numbers to get the float value.
         ranges = {0:0.001522821, 1:0.003863678, 2:0.008098398, 3:0.018197650, 4:0.023067190, 5:0.034655988, 6:1.000000000, 7:1.000000000}
         display_start -= 1
         display_end -= 1
